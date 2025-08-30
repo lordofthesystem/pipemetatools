@@ -1,0 +1,41 @@
+{
+  "experiment_name": "combined_metadata_v1",
+  "coment" : "Experimento criado para xxxx",
+  "create_dataset" : "Yes",
+  "datasets": [
+    "Choteau(2021)",
+    "Chottani(2025)",
+    "Hofman(2024)",
+    "Kore(2025)",
+    "Li(2021)",
+    "Liang(2024)",
+    "Luo(2022)",
+    "Ruiz(2024)",
+    "Torres(2024)",
+    "Zhou(2024)",
+    "Weingarten_Gabbay_et_al_(2025)",
+    "Zhou(2024)"
+  ],
+  "tools": [
+        {
+      "description": "Rodar CPPred nos dois modelos",
+      "cmd": " python ferramentas/CPPred/run_CPPred.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar CPPred-sORF nos dois modelos",
+      "cmd": " python ferramentas/CPPred-sORF/run_CPPred-sORF.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar csORF_finder nos dois modelos",
+      "cmd": " python ferramentas/csORF-finder/run_csORF-finder.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar DeepCPP",
+      "cmd": " python ferramentas/DeepCPP/run_DeepCPP.py -e {{experiment_name}}"
+    }
+
+  ],
+  "variables" : {
+    "data" : "08-08-2025"
+  }
+}

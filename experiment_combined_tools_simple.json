@@ -1,0 +1,30 @@
+{
+  "experiment_name": "combined_tools_simple",
+  "coment" : "Experimento criado para xxxx",
+  "create_dataset" : "Yes",
+  "datasets": [
+    "Tools_CPPred(2019)"
+  ],
+  "tools": [
+        {
+      "description": "Rodar CPPred nos dois modelos",
+      "cmd": " python ferramentas/CPPred/run_CPPred.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar CPPred-sORF nos dois modelos",
+      "cmd": " python ferramentas/CPPred-sORF/run_CPPred-sORF.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar csORF_finder nos dois modelos",
+      "cmd": " python ferramentas/csORF-finder/run_csORF-finder.py -e {{experiment_name}}"
+    },
+    {
+      "description": "Rodar DeepCPP",
+      "cmd": " python ferramentas/DeepCPP/run_DeepCPP.py -e {{experiment_name}}"
+    }
+
+  ],
+  "variables" : {
+    "data" : "04-08-2025"
+  }
+}

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Explorador CSV - Menu Lateral</title>
+<style>
+  * {
+    box-sizing: border-box;
+  }
+  body, html {
+    margin: 0; padding: 0; height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+  }
+  #container {
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  #sidebar {
+    width: 260px;
+    background: #2c3e50;
+    color: #ecf0f1;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+  }
+  #sidebar h2 {
+    margin-top: 0;
+    font-weight: 700;
+    font-size: 1.5em;
+    margin-bottom: 20px;
+  }
+  #file-select {
+    width: 100%;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    margin-bottom: 30px;
+    font-size: 1em;
+  }
+  nav {
+    flex-grow: 1;
+  }
+  nav button {
+    width: 100%;
+    padding: 12px 15px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1em;
+    text-align: left;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    transition: background 0.3s;
+  }
+  nav button:hover, nav button.active {
+    background: #34495e;
+  }
+  #main-content {
+    flex-grow: 1;
+    background: white;
+    padding: 25px;
+    overflow-y: auto;
+  }
+  h1 {
+    margin-top: 0;
+    font-weight: 600;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: 600;
+  }
+  select[multiple] {
+    height: 120px;
+  }
+  input[type=text], input[type=number], select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+  }
+  button.action-btn {
+    margin-top: 20px;
+    background: #2980b9;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    font-size: 1em;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  button.action-btn:hover {
+    background: #3498db;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    table-layout: fixed;
+    word-wrap: break-word;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    max-width: 200px;
+  }
+  th {
+    background: #f4f6f8;
+  }
+  #loading {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    padding: 12px 25px;
+    background: rgba(0,0,0,0.75);
+    color: white;
+    border-radius: 6px;
+    font-size: 1.2em;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+  }
+</style>
+</head>
+<body>
+
+<div id="loading">Carregando...</div>
+
+<div id="container">
+  <aside id="sidebar">
+    <h2>Arquivos CSV</h2>
+    <select id="file-select" aria-label="Selecionar arquivo CSV"></select>
+    <nav>
+      <button id="btn-view" class="active" aria-controls="section-view">Visualizar Dados</button>
+      <button id="btn-search" aria-controls="section-search">Buscar no Arquivo</button>
+      <button id="btn-unique" aria-controls="section-unique">Valores Únicos</button>
+    </nav>
+  </aside>
+
+  <main id="main-content" role="main">
+  <section id="section-view">
+    <h1>Visualizar Dados</h1>
+
+    <label for="column-select">Selecionar colunas (Ctrl+clique para múltipla):</label>
+    <select id="column-select" multiple aria-multiselectable="true"></select>
+
+    <label for="nrows">Número de linhas:</label>
+    <input type="number" id="nrows" value="10" min="1" max="1000" />
+
+    <label for="split-by">Dividir por coluna (opcional):</label>
+    <select id="split-by">
+      <option value="">Nenhuma</option>
+      <!-- Opções serão carregadas via JS -->
+    </select>
+
+    <button class="action-btn" id="load-data-btn">Carregar Dados</button>
+    <button class="copy-button" data-target="table-container">Copiar Conteúdo</button>
+    <div id="table-container"></div>
+  </section>
+
+    <section id="section-search" hidden>
+      <h1>Buscar no Arquivo</h1>
+
+        <!-- Dentro do <section id="section-search"> -->
+        <label for="search-column">Coluna para buscar:</label>
+        <select id="search-column"></select>
+
+        <label for="search-text">Texto da busca:</label>
+        <input type="text" id="search-text" placeholder="Digite o texto a buscar" />
+
+        <label for="search-columns">Colunas para mostrar no resultado (Ctrl+clique múltiplo):</label>
+        <select id="search-columns" multiple size="5" style="min-width: 250px;"></select>
+
+        <button class="action-btn" id="search-btn">Buscar</button>
+
+        <div id="search-results"></div>
+
+    </section>
+
+    <section id="section-unique" hidden>
+      <h1>Valores Únicos</h1>
+
+      <label for="unique-column">Coluna para valores únicos:</label>
+      <select id="unique-column"></select>
+
+      <button class="action-btn" id="unique-btn">Mostrar Valores Únicos</button>
+
+      <pre id="unique-results" style="white-space: pre-wrap; margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto;"></pre>
+    </section>
+  </main>
+</div>
+
+<script>
+  const fileSelect = document.getElementById("file-select");
+  const columnSelect = document.getElementById("column-select");
+  const nrowsInput = document.getElementById("nrows");
+  const tableContainer = document.getElementById("table-container");
+  const loadingDiv = document.getElementById("loading");
+
+  const searchSection = document.getElementById("section-search");
+  const searchColumn = document.getElementById("search-column");
+  const splitby = document.getElementById("split-by");
+  const searchText = document.getElementById("search-text");
+  const searchResults = document.getElementById("search-results");
+
+  const searchColumns = document.getElementById("search-columns");
+
+  const uniqueSection = document.getElementById("section-unique");
+  const uniqueColumn = document.getElementById("unique-column");
+  const uniqueResults = document.getElementById("unique-results");
+
+  const btnView = document.getElementById("btn-view");
+  const btnSearch = document.getElementById("btn-search");
+  const btnUnique = document.getElementById("btn-unique");
+
+  // Helper to show loading
+  function showLoading() {
+    loadingDiv.style.display = "block";
+  }
+  function hideLoading() {
+    loadingDiv.style.display = "none";
+  }
+
+  // Switch visible section
+  function switchSection(sectionId) {
+    [ "section-view", "section-search", "section-unique" ].forEach(id => {
+      document.getElementById(id).hidden = id !== sectionId;
+    });
+    // Update active button
+    [btnView, btnSearch, btnUnique].forEach(btn => btn.classList.remove("active"));
+    if(sectionId === "section-view") btnView.classList.add("active");
+    else if(sectionId === "section-search") btnSearch.classList.add("active");
+    else if(sectionId === "section-unique") btnUnique.classList.add("active");
+  }
+
+  btnView.addEventListener("click", () => switchSection("section-view"));
+  btnSearch.addEventListener("click", () => switchSection("section-search"));
+  btnUnique.addEventListener("click", () => switchSection("section-unique"));
+
+  // Fetch JSON helper
+  async function fetchJSON(url) {
+    showLoading();
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Erro: ${res.status}`);
+      const json = await res.json();
+      hideLoading();
+      return json;
+    } catch (e) {
+      hideLoading();
+      alert(e.message);
+      throw e;
+    }
+  }
+
+  // Load list of CSV files
+  async function loadFiles() {
+    const data = await fetchJSON("/list");
+    fileSelect.innerHTML = "";
+    data.files.forEach(f => {
+      const opt = document.createElement("option");
+      opt.value = f;
+      opt.textContent = f;
+      fileSelect.appendChild(opt);
+    });
+    if(data.files.length > 0) {
+      selectFile(data.files[0]);
+    }
+  }
+
+  // Load columns for selected file
+    async function loadColumns(fileName) {
+    const data = await fetchJSON(`/columns?name=${encodeURIComponent(fileName)}`);
+    [columnSelect, searchColumn, splitby, uniqueColumn, searchColumns].forEach(sel => {
+        sel.innerHTML = "";
+        // Adiciona a linha vazia primeiro
+        // Se for o select splitby, adiciona uma opção vazia no início
+        if (sel === splitby) {
+          const emptyOpt = document.createElement("option");
+          emptyOpt.value = "";
+          emptyOpt.textContent = ""; // Ou "Selecione..."
+          sel.appendChild(emptyOpt);
+        }
+        data.columns.forEach(col => {
+        const opt = document.createElement("option");
+        opt.value = col;
+        opt.textContent = col;
+        sel.appendChild(opt);
+        });
+    });
+    }
+
+  // Called when user picks a file
+  function selectFile(fileName) {
+    loadColumns(fileName);
+    tableContainer.innerHTML = "";
+    searchResults.innerHTML = "";
+    uniqueResults.textContent = "";
+  }
+
+  // Load and render data table
+  async function loadFile() {
+    if (!fileSelect.value) {
+      alert("Selecione um arquivo!");
+      return;
+    }
+    const nrows = nrowsInput.value || 10;
+    const selectedCols = Array.from(columnSelect.selectedOptions).map(opt => opt.value);
+    const splitBy = document.getElementById("split-by").value;  
+    let url = `/file?name=${encodeURIComponent(fileSelect.value)}&nrows=${nrows}`;
+    if (selectedCols.length) url += `&columns=${encodeURIComponent(selectedCols.join(","))}`;
+    if (splitBy) url += `&split_by=${encodeURIComponent(splitBy)}`;
+
+    const data = await fetchJSON(url);
+    renderTable(data, tableContainer);
+  }
+
+  // Search in file
+    async function searchInFile() {
+    if (!fileSelect.value) {
+        alert("Selecione um arquivo!");
+        return;
+    }
+    const col = searchColumn.value;
+    const query = searchText.value.trim();
+    if (!col || !query) {
+        alert("Informe coluna e texto para busca.");
+        return;
+    }
+    const selectedCols = Array.from(searchColumns.selectedOptions).map(opt => opt.value);
+    let url = `/search?name=${encodeURIComponent(fileSelect.value)}&column=${encodeURIComponent(col)}&query=${encodeURIComponent(query)}`;
+    if (selectedCols.length) {
+        url += `&columns=${encodeURIComponent(selectedCols.join(","))}`;
+    }
+
+    const data = await fetchJSON(url);
+    renderTable(data, searchResults);
+    }
+
+
+async function getUniqueValues() {
+  if (!fileSelect.value) {
+    alert("Selecione um arquivo!");
+    return;
+  }
+  const col = uniqueColumn.value;
+  if (!col) {
+    alert("Selecione uma coluna para valores únicos.");
+    return;
+  }
+
+  const data = await fetchJSON(`/unique?name=${encodeURIComponent(fileSelect.value)}&column=${encodeURIComponent(col)}`);
+
+  // Monta tabela
+  let html = "<table border='1' cellpadding='4'><tr><th>Valor</th><th>Quantidade</th></tr>";
+  for (const item of data) {
+    html += `<tr><td>${item.valor}</td><td>${item.quantidade}</td></tr>`;
+  }
+  html += "</table>";
+
+  uniqueResults.innerHTML = html;
+}
+
+
+  // Render a table inside container element
+  function renderTable(data, container) {
+    if (!data || data.length === 0) {
+      container.innerHTML = "<p>Nenhum dado encontrado.</p>";
+      return;
+    }
+    let html = "<table><thead><tr>";
+    Object.keys(data[0]).forEach(col => {
+      html += `<th>${col}</th>`;
+    });
+    html += "</tr></thead><tbody>";
+    data.forEach(row => {
+      html += "<tr>";
+      Object.values(row).forEach(val => {
+        html += `<td>${val}</td>`;
+      });
+      html += "</tr>";
+    });
+    html += "</tbody></table>";
+    container.innerHTML = html;
+  }
+
+  // Eventos dos botões
+  document.getElementById("load-data-btn").addEventListener("click", loadFile);
+  document.getElementById("search-btn").addEventListener("click", searchInFile);
+  document.getElementById("unique-btn").addEventListener("click", getUniqueValues);
+  document.getElementById("unique-btn").addEventListener("click", getUniqueValues);
+
+  // Quando muda o arquivo, recarrega colunas e limpa resultados
+  fileSelect.addEventListener("change", e => {
+    selectFile(e.target.value);
+  });
+
+  // Inicializa
+  loadFiles();
+  switchSection("section-view");
+
+  //Botão copiar
+  document.querySelectorAll(".copy-button").forEach(button => {
+    button.addEventListener("click", async function() {
+        const targetId = this.getAttribute("data-target");
+        const targetDiv = document.getElementById(targetId);
+
+        if (!targetDiv) {
+            alert("Elemento não encontrado!");
+            return;
+        }
+
+        const content = targetDiv.innerText;
+        if (!content.trim()) {
+            alert("Não há conteúdo para copiar!");
+            return;
+        }
+
+        // Tenta usar Clipboard API
+        if (navigator.clipboard) {
+            try {
+                await navigator.clipboard.writeText(content);
+                alert("Conteúdo copiado para a área de transferência!");
+                return;
+            } catch (err) {
+                console.warn("Clipboard API falhou, tentando fallback:", err);
+            }
+        }
+
+        // Fallback usando textarea
+        try {
+            const textarea = document.createElement("textarea");
+            textarea.value = content;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand("copy");
+            document.body.removeChild(textarea);
+            alert("Conteúdo copiado para a área de transferência (fallback)!");
+        } catch (err) {
+            alert("Erro ao copiar: " + err.message);
+            console.error("Detalhes do erro:", err);
+        }
+    });
+});
+
+</script>
+</body>
+</html>

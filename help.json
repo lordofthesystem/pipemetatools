@@ -1,0 +1,20 @@
+{
+  "experiment_name": "combined_tools_v1", #nome do experimento que será utilizado como nome dos arquivos
+  "coment" : "Experimento criado para xxxx", #comentário sobre o experimento
+  "create_dataset" : "No", #Yes - criar os dataset | No - Não criar os dataset (reaproveita o último criado)
+  "datasets": [ #datasets que faram parte do experimento
+    "Tools_CPPred(2019)",
+    "Tools_csORF_Finder(2022)",
+    "Tools_DeepCCP(2020)",
+    "Tools_SCOP(2020)"
+  ],
+  "tools": [ #ferramentas que serão executadas
+    {
+      "description": "Rodar csORF_finder nos dois modelos", #Descrição do que irá rodar
+      "cmd": " python ferramentas/csORF-finder/run_csORF-finder.py -e {{experiment_name}}" #padrão
+    }
+  ],
+  "variables" : {
+    "data" : "04-08-2025" #só para demonstrar que pode colocar mais informações
+  }
+}
